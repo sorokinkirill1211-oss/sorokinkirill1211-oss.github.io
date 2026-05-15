@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎡 Колесо Фортуны</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #0a0a1a;
+    --card: #12122a;
+    --card2: #1a1a35;
+    --accent: #7c3aed;
+    --accent2: #a855f7;
+    --gold: #f59e0b;
+    --text: #e2e8f0;
+    --text2: #94a3b8;
+    --border: #2d2d5a;
+    --green: #10b981;
+    --red: #ef4444;
+    --blue: #3b82f6;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  .header {
+    text-align: center;
+    padding: 30px 20px 10px;
+    background: linear-gradient(180deg, #1a0a3a 0%, transparent 100%);
+  }
+  .header h1 {
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    background: linear-gradient(135deg, #f59e0b, #a855f7, #3b82f6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 20px rgba(168,85,247,0.5));
+    letter-spacing: 2px;
+  }
+  .header p { color: var(--text2); margin-top: 5px; font-size: 0.9rem; }
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    display: grid;
+    grid-template-columns: 340px 1fr 300px;
+    gap: 20px;
+  }
+  @media (max-width: 1100px) {
+    .container { grid-template-columns: 1fr 1fr; }
+    .right-panel { grid-column: 1 / -1; }
+  }
+  @media (max-width: 700px) {
+    .container { grid-template-columns: 1fr; }
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--gold), var(--blue));
+  }
+  .card-title {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--accent2);
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .left-panel { display: flex; flex-direction: column; gap: 15px; }
+  .input-area {
+    width: 100%;
+    min-height: 180px;
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    color: var(--text);
+    font-size: 0.95rem;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.3s;
+    font-family: inherit;
+    line-height: 1.6;
+  }
+  .input-area:focus { border-color: var(--accent2); }
+  .input-area::placeholder { color: var(--text2); }
+  .btn {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+  }
+  .btn:hover { transform: translateY(-1px); filter: brightness(1.1); }
+  .btn:active { transform: translateY(0); }
+  .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
+  .btn-gold { background: linear-gradient(135deg, #d97706, var(--gold)); color: #000; }
+  .btn-green { background: linear-gradient(135deg, #059669, var(--green)); color: #fff; }
+  .btn-red { background: linear-gradient(135deg, #dc2626, var(--red)); color: #fff; }
+  .btn-gray { background: var(--card2); color: var(--text2); border: 1px solid var(--border); }
+  .btn-sm { padding: 6px 12px; font-size: 0.8rem; }
+  .segments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    max-height: 260px;
+    overflow-y: auto;
+  }
+  .segments-list::-webkit-scrollbar { width: 4px; }
+  .segments-list::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
+  .segment-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    background: var(--card2);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: 0.85rem;
+    transition: all 0.2s;
+  }
+  .segment-item.used { opacity: 0.4; text-decoration: line-through; }
+  .seg-color { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .seg-num { font-size: 0.7rem; color: var(--text2); min-width: 18px; }
+  .seg-name { flex: 1; word-break: break-word; }
+  .seg-del {
+    background: none; border: none; color: var(--text2);
+    cursor: pointer; font-size: 0.9rem; padding: 0 4px;
+    transition: color 0.2s; line-height: 1;
+  }
+  .seg-del:hover { color: var(--red); }
+  .modes-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .mode-btn {
+    padding: 10px;
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    cursor: pointer;
+    text-align: center;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+    font-weight: 500;
+  }
+  .mode-btn.active {
+    background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(168,85,247,0.2));
+    border-color: var(--accent2);
+    color: var(--accent2);
+  }
+  .mode-icon { font-size: 1.3rem; display: block; margin-bottom: 3px; }
+  .wheel-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  .wheel-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  /* Стрелка — точно по центру сверху */
+  .wheel-pointer {
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.6));
+    pointer-events: none;
+  }
+  canvas#wheel {
+    border-radius: 50%;
+    filter: drop-shadow(0 0 30px rgba(124,58,237,0.4));
+    cursor: pointer;
+    display: block;
+  }
+  canvas#wheel:hover { filter: drop-shadow(0 0 40px rgba(168,85,247,0.6)); }
+  .spin-btn {
+    padding: 14px 50px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #7c3aed, #a855f7, #f59e0b);
+    background-size: 200% 200%;
+    animation: gradShift 3s ease infinite;
+    border: none;
+    border-radius: 50px;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 20px rgba(124,58,237,0.4);
+    letter-spacing: 1px;
+  }
+  .spin-btn:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 8px 30px rgba(124,58,237,0.6); }
+  .spin-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; animation: none; }
+  @keyframes gradShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  .result-display {
+    text-align: center;
+    padding: 15px 20px;
+    background: var(--card2);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    min-height: 75px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+  .result-label { font-size: 0.72rem; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; }
+  .result-name {
+    font-size: clamp(1.2rem, 3vw, 1.9rem);
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--gold), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-top: 4px;
+    word-break: break-word;
+  }
+  @keyframes winPop {
+    0% { transform: scale(0.7); opacity: 0; }
+    60% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .result-name.pop { animation: winPop 0.5s ease forwards; }
+  .stats-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .stat-chip {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 0.8rem;
+    color: var(--text2);
+  }
+  .stat-chip b { color: var(--text); }
+  .right-panel { display: flex; flex-direction: column; gap: 15px; }
+  .history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    max-height: 280px;
+    overflow-y: auto;
+  }
+  .history-list::-webkit-scrollbar { width: 4px; }
+  .history-list::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
+  .history-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    background: var(--card2);
+    border-radius: 8px;
+    font-size: 0.82rem;
+    border-left: 3px solid transparent;
+  }
+  .history-item:first-child { border-left-color: var(--gold); }
+  .history-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .history-name { flex: 1; font-weight: 500; }
+  .history-time { font-size: 0.7rem; color: var(--text2); }
+  .winner-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .winner-overlay.show { opacity: 1; pointer-events: all; }
+  .winner-box {
+    background: var(--card);
+    border: 2px solid var(--gold);
+    border-radius: 20px;
+    padding: 40px 60px;
+    text-align: center;
+    max-width: 480px;
+    width: 90%;
+    box-shadow: 0 0 60px rgba(245,158,11,0.3);
+    animation: popIn 0.4s ease;
+  }
+  @keyframes popIn {
+    0% { transform: scale(0.5); opacity: 0; }
+    80% { transform: scale(1.05); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .winner-emoji { font-size: 4rem; display: block; margin-bottom: 8px; }
+  .winner-title { font-size: 0.9rem; color: var(--text2); text-transform: uppercase; letter-spacing: 2px; }
+  .winner-name-big {
+    font-size: 2.4rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--gold), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 10px 0;
+    word-break: break-word;
+    line-height: 1.2;
+  }
+  .winner-close {
+    margin-top: 20px;
+    padding: 10px 30px;
+    background: var(--gold);
+    border: none;
+    border-radius: 30px;
+    color: #000;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+  .winner-close:hover { filter: brightness(1.1); }
+  .toast {
+    position: fixed;
+    bottom: 30px; right: 30px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-size: 0.88rem;
+    z-index: 600;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { border-color: var(--green); }
+  .toast.error { border-color: var(--red); }
+  .toast.info { border-color: var(--blue); }
+  .toggle-wrap { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
+  .toggle { position: relative; width: 40px; height: 22px; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute; inset: 0;
+    background: var(--border); border-radius: 22px;
+    cursor: pointer; transition: 0.3s;
+  }
+  .toggle-slider:before {
+    content: ''; position: absolute;
+    width: 16px; height: 16px; left: 3px; top: 3px;
+    background: #fff; border-radius: 50%; transition: 0.3s;
+  }
+  .toggle input:checked + .toggle-slider { background: var(--accent2); }
+  .toggle input:checked + .toggle-slider:before { transform: translateX(18px); }
+  .toggle-label { font-size: 0.85rem; color: var(--text2); cursor: pointer; user-select: none; }
+  .speed-wrap { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
+  .speed-wrap label { font-size: 0.82rem; color: var(--text2); white-space: nowrap; }
+  input[type=range] {
+    -webkit-appearance: none; flex: 1;
+    height: 4px; background: var(--border); border-radius: 2px; outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    background: var(--accent2); border-radius: 50%; cursor: pointer;
+  }
+  .dice-wrap {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    justify-content: center; padding: 10px 0;
+  }
+  .die {
+    width: 64px; height: 64px;
+    background: var(--card2);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem; font-weight: 900; color: var(--gold);
+    user-select: none;
+  }
+  .die.rolling { animation: dieShake 0.08s infinite alternate; border-color: var(--gold); }
+  @keyframes dieShake {
+    from { transform: rotate(-6deg) scale(1.05); }
+    to { transform: rotate(6deg) scale(0.95); }
+  }
+  .progress-bar { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; margin-top: 8px; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--gold)); border-radius: 3px; transition: width 0.4s; }
+  .confetti-piece { position: fixed; pointer-events: none; z-index: 999; border-radius: 2px; }
+  @keyframes cFall {
+    0%   { opacity: 1; transform: translateY(0)    rotate(0deg); }
+    100% { opacity: 0; transform: translateY(100vh) rotate(720deg); }
+  }
+  /* DEBUG highlight — показывает в списке текущего победителя */
+  .segment-item.winner-flash {
+    border-color: var(--gold) !important;
+    background: rgba(245,158,11,0.12) !important;
+  }
+</style>
+</head>
+<body>
+
+<div class="winner-overlay" id="winnerOverlay">
+  <div class="winner-box">
+    <span class="winner-emoji" id="wEmoji">🏆</span>
+    <div class="winner-title">Победитель</div>
+    <div class="winner-name-big" id="wName">—</div>
+    <div id="wSub" style="color:var(--text2);font-size:0.88rem;"></div>
+    <button class="winner-close" onclick="closeOverlay()">Продолжить ✨</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<div class="header">
+  <h1>🎡 Колесо Фортуны</h1>
+  <p>Умный рандомизатор · память · без повторов</p>
+</div>
+
+<div class="container">
+  <!-- LEFT -->
+  <div class="left-panel">
+    <div class="card">
+      <div class="card-title">📝 Участники</div>
+      <textarea class="input-area" id="inputArea"
+        placeholder="Каждая строка — участник:&#10;Александр&#10;Мария&#10;Иван&#10;&#10;Или через запятую."></textarea>
+      <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">
+        <button class="btn btn-primary btn-sm" onclick="applyInput()">✓ Применить</button>
+        <button class="btn btn-gray btn-sm"    onclick="sortAZ()">А→Я</button>
+        <button class="btn btn-gray btn-sm"    onclick="doShuffle()">🔀 Шаффл</button>
+        <button class="btn btn-red btn-sm"     onclick="clearAll()">🗑</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🎯 Секторы</div>
+      <div class="segments-list" id="segList"></div>
+      <div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+      <div style="display:flex;justify-content:space-between;margin-top:5px;font-size:0.75rem;color:var(--text2);">
+        <span id="cntActive">0 активных</span>
+        <span id="cntUsed">0 выпавших</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">⚙️ Настройки</div>
+      <div class="toggle-wrap">
+        <label class="toggle"><input type="checkbox" id="optRemove" checked><span class="toggle-slider"></span></label>
+        <span class="toggle-label" onclick="toggle('optRemove')">Убирать победителя с колеса</span>
+      </div>
+      <div class="toggle-wrap">
+        <label class="toggle"><input type="checkbox" id="optOverlay" checked><span class="toggle-slider"></span></label>
+        <span class="toggle-label" onclick="toggle('optOverlay')">Показывать экран победителя</span>
+      </div>
+      <div class="toggle-wrap">
+        <label class="toggle"><input type="checkbox" id="optSound" checked><span class="toggle-slider"></span></label>
+        <span class="toggle-label" onclick="toggle('optSound')">Звук</span>
+      </div>
+      <div class="speed-wrap">
+        <label>🐢</label>
+        <input type="range" id="speedSlider" min="1" max="5" value="3">
+        <label>🐇</label>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">⚡ Быстро добавить</div>
+      <div style="display:flex;gap:6px;margin-bottom:10px;">
+        <input type="text" id="quickIn" placeholder="Имя..."
+          style="flex:1;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px;color:var(--text);font-size:0.88rem;outline:none;"
+          onkeydown="if(event.key==='Enter')quickAdd()">
+        <button class="btn btn-primary btn-sm" onclick="quickAdd()">+</button>
+      </div>
+      <div class="card-title">🎁 Пресеты</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        <button class="btn btn-gray btn-sm" onclick="preset('names')">👥 Имена</button>
+        <button class="btn btn-gray btn-sm" onclick="preset('nums')">🔢 1–10</button>
+        <button class="btn btn-gray btn-sm" onclick="preset('yesno')">✓✗ Да/Нет</button>
+        <button class="btn btn-gray btn-sm" onclick="preset('days')">📅 Дни</button>
+        <button class="btn btn-gray btn-sm" onclick="preset('prizes')">🎁 Призы</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div class="wheel-section">
+    <div class="card" style="width:100%;">
+      <div class="card-title">🎲 Режимы</div>
+      <div class="modes-grid">
+        <button class="mode-btn active" id="m-wheel" onclick="setMode('wheel')"><span class="mode-icon">🎡</span>Колесо</button>
+        <button class="mode-btn"        id="m-dice"  onclick="setMode('dice')"><span class="mode-icon">🎲</span>Кубики</button>
+        <button class="mode-btn"        id="m-slot"  onclick="setMode('slot')"><span class="mode-icon">🎰</span>Слот</button>
+        <button class="mode-btn"        id="m-card"  onclick="setMode('card')"><span class="mode-icon">🃏</span>Карта</button>
+      </div>
+    </div>
+
+    <!-- DICE CONFIG -->
+    <div class="card" id="dicePanel" style="width:100%;display:none;">
+      <div class="card-title">🎲 Кубики</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap;">
+        <label style="font-size:0.85rem;color:var(--text2);">Кубиков:</label>
+        <select id="diceCount" onchange="buildDice()"
+          style="background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:5px 10px;outline:none;">
+          <option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option>
+        </select>
+        <label style="font-size:0.85rem;color:var(--text2);">Граней:</label>
+        <select id="diceFaces"
+          style="background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:5px 10px;outline:none;">
+          <option value="4">D4</option><option value="6" selected>D6</option>
+          <option value="8">D8</option><option value="10">D10</option>
+          <option value="12">D12</option><option value="20">D20</option><option value="100">D100</option>
+        </select>
+      </div>
+      <div class="dice-wrap" id="diceWrap"></div>
+      <div id="diceResult" style="text-align:center;margin-top:6px;font-size:0.9rem;color:var(--gold);font-weight:700;"></div>
+    </div>
+
+    <!-- SLOT -->
+    <div class="card" id="slotPanel" style="width:100%;display:none;">
+      <div class="card-title">🎰 Слот-машина</div>
+      <div id="slotWrap" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;min-height:70px;align-items:center;">
+        <span style="color:var(--text2);font-size:0.85rem;">Добавьте участников</span>
+      </div>
+    </div>
+
+    <!-- WHEEL -->
+    <div class="wheel-wrapper" id="wheelWrapper">
+      <svg class="wheel-pointer" width="36" height="48" viewBox="0 0 36 48">
+        <polygon points="18,44 2,4 34,4" fill="#f59e0b" stroke="#92400e" stroke-width="1.5" stroke-linejoin="round"/>
+        <circle cx="18" cy="4" r="4" fill="#f59e0b" stroke="#92400e" stroke-width="1.5"/>
+      </svg>
+      <canvas id="wheel" width="460" height="460" onclick="handleSpin()"></canvas>
+    </div>
+
+    <div class="result-display">
+      <div class="result-label">Результат</div>
+      <div class="result-name" id="resultName">Нажмите Крутить!</div>
+    </div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+      <button class="spin-btn" id="spinBtn" onclick="handleSpin()">🎡 КРУТИТЬ!</button>
+      <button class="btn btn-gray" onclick="resetUsed()" title="Вернуть всех">♻️ Сброс</button>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-chip">Всего: <b id="stTotal">0</b></div>
+      <div class="stat-chip">Активных: <b id="stActive">0</b></div>
+      <div class="stat-chip">Раундов: <b id="stRounds">0</b></div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right-panel">
+    <div class="card">
+      <div class="card-title">📜 История</div>
+      <div style="display:flex;gap:6px;margin-bottom:10px;">
+        <button class="btn btn-gray btn-sm" onclick="exportHist()">📥 Экспорт</button>
+        <button class="btn btn-red btn-sm"  onclick="clearHist()">🗑 Очистить</button>
+      </div>
+      <div class="history-list" id="histList"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🎲 RNG</div>
+      <div style="font-size:0.8rem;color:var(--text2);line-height:1.7;">
+        Алгоритм: <b style="color:var(--accent2)">Xorshift + Fisher-Yates</b><br>
+        Энтропия: время · мышь · crypto<br>
+        Seed: <span id="seedDisp" style="color:var(--gold);font-family:monospace;"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   RNG — Xorshift128 + многоисточниковая энтропия
+   ========================================================= */
+const RNG = (() => {
+  let s = (performance.now() * 9999 + Date.now() + Math.random() * 1e9) | 0;
+  let mouseSum = 0;
+
+  document.addEventListener('mousemove', e => {
+    mouseSum = (mouseSum + e.clientX * 1.337 + e.clientY * 0.693) % 1e9;
+  });
+
+  function next() {
+    // Xorshift
+    s ^= s << 13; s ^= s >> 17; s ^= s << 5;
+    const x = Math.abs(s) / 2147483647;
+    // Смешиваем три источника
+    const a = Math.random();
+    const b = (performance.now() % 997) / 997;
+    const c = (mouseSum % 1000) / 1000;
+    return (x * 0.5 + a * 0.3 + b * 0.1 + c * 0.1) % 1;
+  }
+
+  function int(min, max) { return Math.floor(next() * (max - min + 1)) + min; }
+
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(next() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function seed() { return (Math.abs(s) % 0xFFFFFFFF).toString(16).toUpperCase().padStart(8,'0'); }
+
+  return { next, int, shuffle, seed };
+})();
+
+/* =========================================================
+   ЦВЕТА
+   ========================================================= */
+const PALETTE = [
+  '#7c3aed','#a855f7','#3b82f6','#06b6d4','#10b981',
+  '#f59e0b','#ef4444','#ec4899','#8b5cf6','#14b8a6',
+  '#f97316','#84cc16','#6366f1','#0ea5e9','#d946ef',
+  '#fb7185','#34d399','#fbbf24','#60a5fa','#c084fc',
+  '#22d3ee','#fb923c','#a3e635','#818cf8','#f472b6',
+];
+const col = i => PALETTE[i % PALETTE.length];
+
+/* =========================================================
+   СОСТОЯНИЕ
+   ========================================================= */
+const S = {
+  segs: [],       // {name, color, used}
+  hist: [],       // {name, color, time, mode}
+  rounds: 0,
+  mode: 'wheel',
+  angle: 0,       // текущий угол колеса (радианы)
+  spinning: false,
+
+  save() {
+    try {
+      localStorage.setItem('fw4', JSON.stringify({
+        segs: this.segs, hist: this.hist, rounds: this.rounds,
+        mode: this.mode, angle: this.angle,
+        text: document.getElementById('inputArea').value,
+        opts: {
+          remove: document.getElementById('optRemove').checked,
+          overlay: document.getElementById('optOverlay').checked,
+          sound: document.getElementById('optSound').checked,
+          speed: document.getElementById('speedSlider').value,
+          dc: document.getElementById('diceCount').value,
+          df: document.getElementById('diceFaces').value,
+        }
+      }));
+    } catch(e) {}
+  },
+
+  load() {
+    try {
+      const d = JSON.parse(localStorage.getItem('fw4') || 'null');
+      if (!d) return false;
+      this.segs   = d.segs   || [];
+      this.hist   = d.hist   || [];
+      this.rounds = d.rounds || 0;
+      this.mode   = d.mode   || 'wheel';
+      this.angle  = d.angle  || 0;
+      setTimeout(() => {
+        if (d.text) document.getElementById('inputArea').value = d.text;
+        const o = d.opts || {};
+        if (o.remove   !== undefined) document.getElementById('optRemove').checked  = o.remove;
+        if (o.overlay  !== undefined) document.getElementById('optOverlay').checked = o.overlay;
+        if (o.sound    !== undefined) document.getElementById('optSound').checked   = o.sound;
+        if (o.speed)  document.getElementById('speedSlider').value = o.speed;
+        if (o.dc)     document.getElementById('diceCount').value   = o.dc;
+        if (o.df)     document.getElementById('diceFaces').value   = o.df;
+      }, 0);
+      return true;
+    } catch(e) { return false; }
+  }
+};
+
+/* =========================================================
+   ПАРСИНГ ВВОДА
+   ========================================================= */
+function parseText(txt) {
+  const seen = new Set();
+  return txt.split(/[\n,;]+/)
+    .map(s => s.trim()).filter(s => s)
+    .filter(s => { const k = s.toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; });
+}
+
+function applyInput() {
+  const names = parseText(document.getElementById('inputArea').value);
+  if (!names.length) { toast('⚠️ Введите хотя бы одного участника', 'error'); return; }
+  if (names.length > 100) { toast('⚠️ Максимум 100', 'error'); return; }
+
+  // Сохраняем used статус
+  const usedMap = {};
+  S.segs.forEach(s => usedMap[s.name.toLowerCase()] = s.used);
+
+  // Сортируем по имени — каждая ячейка = одно имя
+  const sorted = [...names].sort((a,b) => a.localeCompare(b,'ru'));
+  S.segs = sorted.map((name,i) => ({ name, color: col(i), used: usedMap[name.toLowerCase()]||false }));
+
+  renderAll(); S.save();
+  toast(`✓ ${names.length} участников, отсортировано А→Я`, 'success');
+}
+
+function sortAZ() {
+  if (!S.segs.length) return;
+  S.segs.sort((a,b) => a.name.localeCompare(b.name,'ru'));
+  S.segs.forEach((s,i) => s.color = col(i));
+  renderAll(); S.save();
+}
+
+function doShuffle() {
+  if (!S.segs.length) return;
+  S.segs = RNG.shuffle(S.segs);
+  S.segs.forEach((s,i) => s.color = col(i));
+  renderAll(); S.save();
+  toast('🔀 Перемешано','info');
+}
+
+function clearAll() {
+  if (!confirm('Очистить всё?')) return;
+  S.segs = []; document.getElementById('inputArea').value = '';
+  renderAll(); S.save();
+}
+
+function quickAdd() {
+  const inp = document.getElementById('quickIn');
+  const name = inp.value.trim(); if (!name) return;
+  if (S.segs.some(s => s.name.toLowerCase() === name.toLowerCase())) {
+    toast('⚠️ Уже есть','error'); return;
+  }
+  S.segs.push({ name, color: col(S.segs.length), used: false });
+  const ia = document.getElementById('inputArea');
+  ia.value = (ia.value ? ia.value+'\n' : '') + name;
+  inp.value = '';
+  renderAll(); S.save();
+}
+
+function delSeg(i) {
+  S.segs.splice(i,1);
+  S.segs.forEach((s,j) => s.color = col(j));
+  document.getElementById('inputArea').value = S.segs.map(s=>s.name).join('\n');
+  renderAll(); S.save();
+}
+
+function resetUsed() {
+  S.segs.forEach(s => s.used = false);
+  renderAll(); S.save();
+  toast('♻️ Все снова активны','success');
+}
+
+const PRESETS = {
+  names:  ['Александр','Мария','Иван','Елена','Дмитрий','Анна','Сергей','Ольга'],
+  nums:   ['1','2','3','4','5','6','7','8','9','10'],
+  yesno:  ['Да ✓','Нет ✗','Возможно 🤔','Точно Да!','Точно Нет!'],
+  days:   ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'],
+  prizes: ['🥇 Главный приз','🥈 2-е место','🥉 3-е место','🎁 Подарок','✨ Бонус'],
+};
+function preset(k) {
+  document.getElementById('inputArea').value = PRESETS[k].join('\n');
+  applyInput();
+}
+
+/* =========================================================
+   ОТРИСОВКА СПИСКА / СТАТИСТИКА
+   ========================================================= */
+function renderSegList() {
+  const el = document.getElementById('segList');
+  if (!S.segs.length) {
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text2);font-size:0.85rem;">🎪 Добавьте участников</div>';
+    return;
+  }
+  el.innerHTML = S.segs.map((s,i) => `
+    <div class="segment-item ${s.used?'used':''}">
+      <span class="seg-num">${i+1}</span>
+      <span class="seg-color" style="background:${s.color}"></span>
+      <span class="seg-name">${esc(s.name)}</span>
+      ${s.used?'<span style="font-size:0.7rem;color:var(--gold)">✓</span>':''}
+      <button class="seg-del" onclick="delSeg(${i})">✕</button>
+    </div>`).join('');
+}
+
+function updateStats() {
+  const tot = S.segs.length;
+  const used = S.segs.filter(s=>s.used).length;
+  const act  = tot - used;
+  document.getElementById('stTotal').textContent  = tot;
+  document.getElementById('stActive').textContent = act;
+  document.getElementById('stRounds').textContent = S.rounds;
+  document.getElementById('cntActive').textContent = `${act} активных`;
+  document.getElementById('cntUsed').textContent   = `${used} выпавших`;
+  document.getElementById('progFill').style.width  = tot ? (used/tot*100)+'%' : '0%';
+  document.getElementById('seedDisp').textContent  = RNG.seed();
+}
+
+function renderHist() {
+  const el = document.getElementById('histList');
+  if (!S.hist.length) {
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text2);font-size:0.82rem;">📋 Пусто</div>';
+    return;
+  }
+  el.innerHTML = [...S.hist].reverse().map((h,i) => `
+    <div class="history-item">
+      <span style="font-size:0.7rem;color:var(--text2);min-width:24px;">#${S.hist.length-i}</span>
+      <span class="history-dot" style="background:${h.color}"></span>
+      <span class="history-name">${esc(h.name)}</span>
+      <span style="font-size:0.7rem;background:var(--card);padding:1px 6px;border-radius:10px;color:var(--text2);">${h.mode}</span>
+      <span class="history-time">${h.time}</span>
+    </div>`).join('');
+}
+
+function renderAll() { renderSegList(); drawWheel(); updateStats(); renderHist(); }
+
+/* =========================================================
+   КОЛЕСО — ЯДРО
+   Стрелка смотрит ВВЕРХ → указывает на угол -π/2 (т.е. 270°)
+   Сектор i занимает углы от:
+     startAngle = S.angle + i * arc
+     endAngle   = startAngle + arc
+   Сектор под стрелкой — тот, в чей диапазон попадает -π/2
+   ========================================================= */
+const canvas = document.getElementById('wheel');
+const ctx    = canvas.getContext('2d');
+const CX = canvas.width  / 2;   // 230
+const CY = canvas.height / 2;   // 230
+const R  = CX - 8;              // 222
+
+function drawWheel() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const active = S.segs.filter(s => !s.used);
+  const draw   = active.length ? active : S.segs;
+
+  if (!draw.length) {
+    // Пустое колесо
+    ctx.beginPath();
+    ctx.arc(CX, CY, R, 0, Math.PI*2);
+    ctx.fillStyle = '#1a1a35';
+    ctx.fill();
+    ctx.strokeStyle = '#7c3aed'; ctx.lineWidth = 3; ctx.stroke();
+    ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 16px Segoe UI';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('Добавьте участников', CX, CY);
+    return;
+  }
+
+  const n   = draw.length;
+  const arc = (Math.PI * 2) / n;
+
+  draw.forEach((seg, i) => {
+    const a0 = S.angle + i * arc;
+    const a1 = a0 + arc;
+
+    // Заливка сектора
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(CX, CY);
+    ctx.arc(CX, CY, R, a0, a1);
+    ctx.closePath();
+
+    const mid = a0 + arc / 2;
+    const gx1 = CX + Math.cos(mid) * R * 0.25;
+    const gy1 = CY + Math.sin(mid) * R * 0.25;
+    const gx2 = CX + Math.cos(mid) * R;
+    const gy2 = CY + Math.sin(mid) * R;
+    const g   = ctx.createLinearGradient(gx1, gy1, gx2, gy2);
+    g.addColorStop(0, lighten(seg.color, 35));
+    g.addColorStop(1, seg.color);
+    ctx.fillStyle = g;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.restore();
+
+    // Текст — поворачиваем так, чтобы читался от центра наружу
+    ctx.save();
+    ctx.translate(CX, CY);
+    ctx.rotate(mid);  // направление «наружу» вдоль середины сектора
+    const textR = R * (n <= 10 ? 0.63 : 0.58);
+    ctx.translate(textR, 0);
+
+    const fs = Math.max(9, Math.min(15, 190 / n));
+    ctx.font = `bold ${fs}px Segoe UI`;
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = 'rgba(0,0,0,0.9)';
+    ctx.shadowBlur  = 5;
+
+    const maxCh = n <= 6 ? 16 : n <= 12 ? 11 : 8;
+    let txt = seg.name.length > maxCh ? seg.name.slice(0, maxCh-1)+'…' : seg.name;
+    ctx.fillText(txt, 0, 0);
+    ctx.restore();
+  });
+
+  // Обводка колеса
+  ctx.beginPath();
+  ctx.arc(CX, CY, R, 0, Math.PI*2);
+  ctx.strokeStyle = 'rgba(168,85,247,0.5)';
+  ctx.lineWidth = 5;
+  ctx.stroke();
+
+  // Центр
+  const cg = ctx.createRadialGradient(CX-6, CY-6, 2, CX, CY, 26);
+  cg.addColorStop(0, '#c084fc');
+  cg.addColorStop(1, '#4c1d95');
+  ctx.beginPath();
+  ctx.arc(CX, CY, 26, 0, Math.PI*2);
+  ctx.fillStyle = cg; ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.25)'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = '#fff';
+  ctx.font = '16px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.shadowBlur = 0;
+  ctx.fillText('★', CX, CY);
+}
+
+function lighten(hex, amt) {
+  const n = parseInt(hex.replace('#',''), 16);
+  const r = Math.min(255, (n>>16) + amt);
+  const g = Math.min(255, ((n>>8)&0xff) + amt);
+  const b = Math.min(255, (n&0xff) + amt);
+  return `rgb(${r},${g},${b})`;
+}
+
+/* =========================================================
+   ОПРЕДЕЛЕНИЕ ПОБЕДИТЕЛЯ — точная математика
+   Стрелка = угол -π/2 (270° / 12 часов)
+   ========================================================= */
+function getSegmentUnderPointer(segs) {
+  const n   = segs.length;
+  const arc = (Math.PI * 2) / n;
+
+  // Нормализуем угол стрелки относительно текущего поворота колеса
+  // Стрелка в мировых координатах находится на -π/2
+  // В системе колеса это: (-π/2 - S.angle)  нормализованное в [0, 2π)
+  const POINTER_WORLD = -Math.PI / 2;
+  let rel = ((POINTER_WORLD - S.angle) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+
+  // Индекс сектора = floor(rel / arc)
+  const idx = Math.floor(rel / arc) % n;
+  return idx;
+}
+
+/* =========================================================
+   ВРАЩЕНИЕ
+   ========================================================= */
+function handleSpin() {
+  if (S.spinning) return;
+  if (S.mode !== 'wheel') { modeAction(); return; }
+
+  const active = S.segs.filter(s => !s.used);
+  if (!active.length) {
+    if (!S.segs.length) { toast('⚠️ Добавьте участников!','error'); return; }
+    toast('🏁 Все выпали! Нажмите ♻️','info'); return;
+  }
+
+  S.spinning = true;
+  document.getElementById('spinBtn').disabled = true;
+
+  const n   = active.length;
+  const arc = (Math.PI * 2) / n;
+
+  // Выбираем победителя случайно
+  const winIdx  = Math.floor(RNG.next() * n);
+  const winner  = active[winIdx];
+
+  // Вычисляем, на сколько нужно довернуть колесо,
+  // чтобы середина сектора winIdx оказалась точно под стрелкой (-π/2)
+  //
+  // Середина сектора winIdx в системе колеса (до вращения) = winIdx * arc + arc/2
+  // После вращения на deltaAngle её мировая позиция:
+  //   S.angle + deltaAngle + winIdx*arc + arc/2  = -π/2  (mod 2π)
+  // => deltaAngle = -π/2 - S.angle - winIdx*arc - arc/2  (mod 2π)
+
+  const POINTER = -Math.PI / 2;
+  const segMid  = winIdx * arc + arc / 2;
+
+  // Небольшое случайное смещение внутри сектора (чтобы не всегда в центр)
+  const jitter  = (RNG.next() - 0.5) * arc * 0.55;
+
+  let delta = POINTER - S.angle - segMid - jitter;
+  // Нормализуем delta в (-2π, 0] — колесо крутится ВПЕРЁД (по часовой), значит delta < 0
+  delta = ((delta % (Math.PI*2)) - Math.PI*2) % (Math.PI*2); // ≤ 0
+
+  // Добавляем полные обороты
+  const speed  = parseInt(document.getElementById('speedSlider').value);
+  const spins  = (speed + 2) + RNG.int(0, speed);   // от 3 до 9 оборотов
+  delta       -= spins * Math.PI * 2;
+
+  const duration = (3500 + spins * 300) / Math.sqrt(speed);
+  const t0       = performance.now();
+  const a0       = S.angle;
+
+  snd('spin');
+
+  function frame(now) {
+    const p    = Math.min(1, (now - t0) / duration);
+    const ease = easeOut(p);
+    S.angle    = a0 + delta * ease;
+    drawWheel();
+    if (p < 0.95 && Math.random() < (1-p) * 0.4) snd('tick');
+
+    if (p < 1) {
+      requestAnimationFrame(frame);
+    } else {
+      S.angle = a0 + delta;   // точное финальное значение
+
+      // ← ПРОВЕРКА: кто под стрелкой?
+      const checkIdx = getSegmentUnderPointer(active);
+      const realWinner = active[checkIdx] || winner;  // страховка
+
+      S.spinning = false;
+      document.getElementById('spinBtn').disabled = false;
+      onWin(realWinner);
+    }
+  }
+
+  requestAnimationFrame(frame);
+}
+
+function easeOut(t) { return 1 - Math.pow(1-t, 3); }
+
+/* =========================================================
+   ПОБЕДИТЕЛЬ
+   ========================================================= */
+function onWin(winner) {
+  S.rounds++;
+  if (document.getElementById('optRemove').checked) winner.used = true;
+
+  const now  = new Date();
+  const time = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+  S.hist.push({ name: winner.name, color: winner.color, time, mode: '🎡' });
+
+  // Result display
+  const rn = document.getElementById('resultName');
+  rn.textContent  = winner.name;
+  rn.className    = 'result-name';
+  void rn.offsetWidth;
+  rn.className    = 'result-name pop';
+
+  if (document.getElementById('optOverlay').checked) showOverlay(winner.name, '🏆');
+
+  confetti(winner.color);
+  snd('win');
+  renderAll(); S.save();
+}
+
+/* =========================================================
+   OVERLAY
+   ========================================================= */
+function showOverlay(name, emoji) {
+  document.getElementById('wName').textContent  = name;
+  document.getElementById('wEmoji').textContent = emoji;
+  document.getElementById('wSub').textContent   = `Раунд #${S.rounds}`;
+  document.getElementById('winnerOverlay').classList.add('show');
+}
+function closeOverlay() { document.getElementById('winnerOverlay').classList.remove('show'); }
+document.getElementById('winnerOverlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeOverlay();
+});
+
+/* =========================================================
+   РЕЖИМЫ
+   ========================================================= */
+function setMode(m) {
+  S.mode = m;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('m-'+m).classList.add('active');
+
+  document.getElementById('wheelWrapper').style.display = m==='wheel' ? 'inline-flex' : 'none';
+  document.getElementById('dicePanel').style.display    = m==='dice'  ? 'block'       : 'none';
+  document.getElementById('slotPanel').style.display    = m==='slot'  ? 'block'       : 'none';
+
+  const labels = { wheel:'🎡 КРУТИТЬ!', dice:'🎲 БРОСИТЬ!', slot:'🎰 РЫЧАГ!', card:'🃏 КАРТА!' };
+  document.getElementById('spinBtn').textContent = labels[m];
+
+  if (m==='dice') buildDice();
+  S.save();
+}
+
+function modeAction() {
+  const m = S.mode;
+  if (m==='dice') rollDice();
+  else if (m==='slot') spinSlot();
+  else if (m==='card') drawCard();
+}
+
+/* DICE */
+function buildDice() {
+  const cnt  = +document.getElementById('diceCount').value;
+  const wrap = document.getElementById('diceWrap');
+  wrap.innerHTML = '';
+  for (let i=0; i<cnt; i++) {
+    const d = document.createElement('div');
+    d.className = 'die'; d.id = `die${i}`; d.textContent = '?';
+    wrap.appendChild(d);
+  }
+  document.getElementById('diceResult').textContent = '';
+}
+
+function rollDice() {
+  const cnt   = +document.getElementById('diceCount').value;
+  const faces = +document.getElementById('diceFaces').value;
+  const els   = Array.from({length:cnt}, (_,i) => document.getElementById(`die${i}`));
+  els.forEach(d => d.classList.add('rolling'));
+  document.getElementById('spinBtn').disabled = true;
+
+  let t = 0, max = 18 + RNG.int(0,10);
+  const iv = setInterval(() => {
+    els.forEach(d => { d.textContent = RNG.int(1, faces); }); snd('tick');
+    if (++t >= max) {
+      clearInterval(iv);
+      const vals = els.map(d => { const v=RNG.int(1,faces); d.textContent=v; d.classList.remove('rolling'); d.style.borderColor='var(--gold)'; setTimeout(()=>d.style.borderColor='',1200); return v; });
+      const sum  = vals.reduce((a,b)=>a+b,0);
+      const txt  = cnt>1 ? `Итого: ${sum} (${vals.join('+')})`:`Выпало: ${vals[0]}`;
+      document.getElementById('diceResult').textContent = txt;
+      document.getElementById('resultName').textContent = txt;
+      addHist(txt,'#f59e0b','🎲');
+      document.getElementById('spinBtn').disabled = false;
+      snd('win'); confetti('#f59e0b');
+      if (document.getElementById('optOverlay').checked) showOverlay(txt,'🎲');
+    }
+  }, 75);
+}
+
+/* SLOT */
+function spinSlot() {
+  const active = S.segs.filter(s=>!s.used);
+  if (!active.length) { toast('⚠️ Нет активных участников!','error'); return; }
+  const cols = Math.min(3, active.length);
+  const wrap = document.getElementById('slotWrap');
+  wrap.innerHTML = '';
+  const els = [];
+  for (let i=0; i<cols; i++) {
+    const d = document.createElement('div');
+    d.style.cssText='width:90px;height:68px;background:var(--card2);border:2px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.82rem;text-align:center;padding:4px;';
+    d.textContent='?'; wrap.appendChild(d); els.push(d);
+  }
+  document.getElementById('spinBtn').disabled = true;
+  const winners = RNG.shuffle([...active]).slice(0, cols);
+  let t=0, max=22+RNG.int(0,12);
+  const iv = setInterval(()=>{
+    els.forEach(d=>{ const r=active[Math.floor(RNG.next()*active.length)]; d.textContent=r.name; d.style.borderColor=r.color; d.style.color=r.color; }); snd('tick');
+    if(++t>=max){
+      clearInterval(iv);
+      els.forEach((d,i)=>{ d.textContent=winners[i].name; d.style.borderColor=winners[i].color; d.style.color=winners[i].color; });
+      const txt=winners.map(w=>w.name).join(', ');
+      document.getElementById('resultName').textContent=txt;
+      if(document.getElementById('optRemove').checked) winners[0].used=true;
+      addHist(winners[0].name, winners[0].color,'🎰');
+      document.getElementById('spinBtn').disabled=false;
+      snd('win'); confetti(winners[0].color);
+      if(document.getElementById('optOverlay').checked) showOverlay(winners[0].name,'🎰');
+      renderAll(); S.save();
+    }
+  },72);
+}
+
+/* CARD */
+let deck = [];
+function drawCard() {
+  const active = S.segs.filter(s=>!s.used);
+  if (!active.length) { toast('⚠️ Нет активных!','error'); return; }
+  if (!deck.length) { deck = RNG.shuffle([...active]); toast('🃏 Колода перемешана','info'); }
+  const w = deck.pop();
+  if (!w) { deck=[]; drawCard(); return; }
+  if (document.getElementById('optRemove').checked) w.used=true;
+  document.getElementById('resultName').textContent = w.name;
+  addHist(w.name, w.color,'🃏');
+  snd('win'); confetti(w.color);
+  if(document.getElementById('optOverlay').checked) showOverlay(w.name,'🃏');
+  renderAll(); S.save();
+}
+
+function addHist(name, color, mode) {
+  S.rounds++;
+  const now=new Date();
+  const time=`${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+  S.hist.push({name,color,time,mode});
+  updateStats(); renderHist();
+}
+
+/* =========================================================
+   ИСТОРИЯ
+   ========================================================= */
+function exportHist() {
+  if (!S.hist.length) { toast('История пуста','error'); return; }
+  const txt = S.hist.map((h,i)=>`#${i+1} | ${h.time} | ${h.mode} | ${h.name}`).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([`Колесо Фортуны — История\n${'─'.repeat(40)}\n`+txt],{type:'text/plain;charset=utf-8'}));
+  a.download='fortune_hist.txt'; a.click();
+  toast('📥 Готово','success');
+}
+function clearHist() {
+  if (!confirm('Очистить историю?')) return;
+  S.hist=[]; S.rounds=0; renderHist(); updateStats(); S.save();
+  toast('🗑 Очищено','info');
+}
+
+/* =========================================================
+   ЗВУК
+   ========================================================= */
+let _actx;
+function getActx() {
+  if (!_actx) try { _actx = new (window.AudioContext||window.webkitAudioContext)(); } catch(e){}
+  return _actx;
+}
+function snd(type) {
+  if (!document.getElementById('optSound').checked) return;
+  const c = getActx(); if (!c) return;
+  try {
+    const o=c.createOscillator(), g=c.createGain(); o.connect(g); g.connect(c.destination);
+    if (type==='tick') {
+      o.frequency.value=350+RNG.next()*300; o.type='sine';
+      g.gain.setValueAtTime(0.04,c.currentTime); g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.05);
+      o.start(); o.stop(c.currentTime+0.06);
+    } else if (type==='spin') {
+      o.frequency.setValueAtTime(180,c.currentTime); o.frequency.exponentialRampToValueAtTime(900,c.currentTime+0.25);
+      o.type='sawtooth';
+      g.gain.setValueAtTime(0.07,c.currentTime); g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.3);
+      o.start(); o.stop(c.currentTime+0.35);
+    } else if (type==='win') {
+      [523,659,784,1047].forEach((f,i)=>{
+        const oo=c.createOscillator(),gg=c.createGain(); oo.connect(gg); gg.connect(c.destination);
+        oo.type='triangle'; oo.frequency.value=f;
+        const t=c.currentTime+i*0.11;
+        gg.gain.setValueAtTime(0,t); gg.gain.linearRampToValueAtTime(0.1,t+0.04); gg.gain.exponentialRampToValueAtTime(0.001,t+0.3);
+        oo.start(t); oo.stop(t+0.35);
+      });
+    }
+  } catch(e){}
+}
+
+/* =========================================================
+   КОНФЕТТИ
+   ========================================================= */
+function confetti(base) {
+  const colors = [base,'#f59e0b','#a855f7','#3b82f6','#10b981','#ef4444'];
+  for (let i=0; i<55; i++) setTimeout(()=>{
+    const el = document.createElement('div');
+    el.className='confetti-piece';
+    const c=colors[Math.floor(RNG.next()*colors.length)];
+    const sz=RNG.int(6,13);
+    el.style.cssText=`left:${RNG.next()*100}vw;top:-14px;width:${sz}px;height:${sz}px;background:${c};border-radius:${RNG.next()>.5?'50%':'2px'};animation:cFall ${RNG.int(2000,3800)}ms ${RNG.int(0,400)}ms ease-in forwards;transform:rotate(${RNG.next()*360}deg);`;
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),4500);
+  }, i*25);
+}
+
+/* =========================================================
+   УТИЛИТЫ
+   ========================================================= */
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function toggle(id) { const el=document.getElementById(id); el.checked=!el.checked; S.save(); }
+
+let _toastT;
+function toast(msg, type='info') {
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className=`toast show ${type}`;
+  clearTimeout(_toastT); _toastT=setTimeout(()=>el.classList.remove('show'),3000);
+}
+
+/* =========================================================
+   ИНИЦИАЛИЗАЦИЯ
+   ========================================================= */
+function init() {
+  const loaded = S.load();
+
+  // Восстановить настройки
+  ['optRemove','optOverlay','optSound'].forEach(id => {
+    document.getElementById(id).addEventListener('change', ()=>S.save());
+  });
+  document.getElementById('speedSlider').addEventListener('input', ()=>S.save());
+  document.getElementById('diceCount').addEventListener('change', buildDice);
+
+  // Автосохранение текста
+  document.getElementById('inputArea').addEventListener('input', ()=>S.save());
+
+  // Инициализируем режим
+  setMode(S.mode);
+  renderAll();
+
+  if (loaded && S.segs.length) {
+    toast(`✓ Загружено ${S.segs.length} участников из памяти`, 'success');
+  }
+}
+
+init();
+</script>
+</body>
+</html>
